@@ -9,6 +9,7 @@ import argparse                     #To parse all of the arguments
 import pxssh                        #Connect to servers and execute commands
 import getpass                      #To get the password relatively securely
 from threading import Thread, Lock  #For multiple threads for each connection
+import time                         #To wait in between connection attempts
 
 #Worker for each process spawned
 def worker(server, username, password):#, lock):
@@ -41,22 +42,24 @@ def worker(server, username, password):#, lock):
                 return -1
             
             #Sleep for half a second and then try it again
-            sleep(.5)
+            time.sleep(.5)
     
     #If the connection died for some reason, then quit
     if not s.isalive():
         return -1
 
     print("Testing {}".format(server))  #Print the server that we are testing
-    print "1"
-    s.sendline('hostname')              #Send the `hostname` command for test
-    print "2"
+    s.sendline('who -u')              #Send the `hostname` command for test
     s.prompt()                          #Synchronize with the prompt
-    print "3"
+    outputArray = filter(None, \
+            s.before.split('\r\n'))
+    outputArray = outputArray[1:]
+    print type(s.before)
     print s.before                    #Print the results of the command
-    print "4"
+    print outputArray
+    summary = [server, len(outputArray) - 1, outputArray]
+    results.append(summary)
     s.logout()                          #Logout of the server
-    print "5"
 
 
 def main():
@@ -68,6 +71,8 @@ def main():
     #parser.add_argument("-k", "--key-file", help="Specify a private key for login.")
     args = parser.parse_args()
     
+    global results
+    results = list()
     #Initialize array of servers
     servers = []
     try:
@@ -92,6 +97,8 @@ def main():
     for thread in threads:
         thread.join()
 
+    print "NOW PRINTING THE SUMMARY OF THE STUFF!!!!"
+    print results
     return 0
 
 if __name__ == "__main__":
