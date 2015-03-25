@@ -11,6 +11,19 @@ import getpass                      #To get the password relatively securely
 from threading import Thread, Lock  #For multiple threads for each connection
 import time                         #To wait in between connection attempts
 
+
+#create a class for the results
+class result:
+    server     = str()
+    num_users  = int()
+    list_users = list()
+ 
+    def __init__(self, serv, num, ls_users):
+        server     = serv
+        num_users  = num
+        list_users = ls_users
+        
+
 #Worker for each process spawned
 def worker(server, username, password):#, lock):
     #Try each server 3 times (0, 1, 2)
@@ -57,7 +70,7 @@ def worker(server, username, password):#, lock):
     print type(s.before)
     print s.before                    #Print the results of the command
     print outputArray
-    summary = [server, len(outputArray) - 1, outputArray]
+    summary = result(server, len(outputArray) - 1, outputArray)
     results.append(summary)
     s.logout()                          #Logout of the server
 
@@ -99,6 +112,30 @@ def main():
 
     print "NOW PRINTING THE SUMMARY OF THE STUFF!!!!"
     print results
+
+    first = True
+    for result in results:
+        if first == True:
+            first = False
+            least = result
+        elif result[1] < least[1]:
+            least = []
+            least.append(result)
+        elif result[1] == least[1]:
+            least.extend(result)
+
+    if len(least) == 1:
+        print "The server with the least number of users is:"
+        print "{}\t{}".format(least[0][0],least[0][1])
+    elif len(least) > 1:
+        print least
+        print "The servers with the least number of users are:"
+        for index in range(0, len(least)):
+            print "Index>> {}".format(index)
+            print least[index]
+    elif len(least) < 1:
+        print "Something has gone terribly wrong"
+    
     return 0
 
 if __name__ == "__main__":
