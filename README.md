@@ -3,5 +3,18 @@
 ##Purpose
 SSH into a server that has the least load.  It's really annoying when a server is flooded with users and I don't have any CPU cycles to run my code.
 
+##Usage
+```
+$ python leSSH.py --help
+usage: leSSH.py [-h] [--sentence] filename
+
+positional arguments:
+  filename        File containing a list of SSH servers.
+
+  optional arguments:
+    -h, --help      show this help message and exit
+      --sentence, -s  Print the final output in a sentence
+```
+
 ##General Method
-Supply the script with a list of servers, log into all of them, execute \`who -u\` or \`uptime\` to log the usage of the server, log into the server that has the least load.
+Supply the script with a list of servers, either as an FQDN or an IP address, log into all of them, execute \`who -u\` to log the number of users on the server, return the server that has the least number of users logged in.

@@ -12,13 +12,25 @@ from threading import Thread, Lock  #For multiple threads for each connection
 import time                         #To wait in between connection attempts
 
 
-#create a class for the results
+"""
+@Class: result
+@Attribute: server : The FQDN or IP address of the target server.
+@Attribute: num_users : Number of users currently logged on - 1 for your connection.
+@Attribute: list_users: Individual lines of output from the `who -u` command.
+"""
 class result:
     server     = str()
     num_users  = int()
     list_users = list()
  
-#Worker for each process spawned
+"""
+@Function: worker
+@Description: Worker for each process spawned to test the SSH server.
+@Parameter: server : The target SSH server to be tested.
+@Parameter: username : The username to log in with.
+@Parameter: password : The password to log in with.
+@Returns: Zero (0) if successful, negative 1 (-1) if there is an error.
+"""
 def worker(server, username, password):#, lock):
     #Try each server 3 times (0, 1, 2)
     for tries in range(3):
@@ -55,35 +67,48 @@ def worker(server, username, password):#, lock):
     if not s.isalive():
         return -1
 
-    print("Testing {}".format(server))  #Print the server that we are testing
-    s.sendline('who -u')              #Send the `hostname` command for test
+    #Initiate testing of the server
+    print("Testing {}".format(server))
+    s.sendline('who -u')                #Send the `who -u` command for testing
     s.prompt()                          #Synchronize with the prompt
-    outputArray = filter(None, \
-            s.before.split('\r\n'))
+    
+    #Put each line into an array and ignore the first entry holding the command
+    outputArray = filter(None, s.before.split('\r\n'))     
     outputArray = outputArray[1:]
+    
+    #Create a result object to hold the information
     r = result()
     r.server = server
     r.num_users = len(outputArray) - 1
     r.list_users = outputArray
 
+    #Append the information to the global array and quit
     results.append(r)
-    s.logout()                          #Logout of the server
+    s.logout()
 
-
+"""
+@Function: main
+@Description: Main function for execution.  Creates individual threads to test each of the SSH servers
+"""
 def main():
     #Create my argument parser
     parser = argparse.ArgumentParser()
-
     parser.add_argument("filename", help="File containing a list of SSH servers.")
+    '''
+    Options to be added soon:
     #parser.add_argument("-sc", "--short-circuit", help="If a server has 0 users logged on, stop examination of all other servers and return this server as the successful server.", action='store_true')
     #parser.add_argument("-k", "--key-file", help="Specify a private key for login.")
+    '''
     parser.add_argument("--sentence", "-s", help="Print the final output in a sentence", action='store_true')
     args = parser.parse_args()
     
+    
+    #Create a global results list for all worker threads to append to
     global results
     results = list()
-    #Initialize array of servers
-    servers = []
+
+    #Initialize array of servers and try to open the file of servers
+    servers = list()
     try:
         with open(args.filename) as f:
             servers = f.readlines()
@@ -95,20 +120,20 @@ def main():
     username = raw_input("username: ")
     password = getpass.getpass("password: ")
 
-    threads = []    #Create an empty list of threads
-    #lock = lock()   #Create a lock object for threading
+    #Create an empty list of threads
+    threads = []
     
+    #Iterate through the list of servers and create a thread to handle testing
     for server in servers:
-        thread = Thread(target=worker, args=(server, username, password))#, lock))
+        thread = Thread(target=worker, args=(server, username, password))
         thread.start()
         threads.append(thread)
 
+    #Join the threads back together after execution
     for thread in threads:
         thread.join()
 
-    #print "NOW PRINTING THE SUMMARY OF THE STUFF!!!!"
-    #print results
-
+    #Find the server with the least number of users
     first = True
     least = result()
     for res in results:
@@ -118,6 +143,7 @@ def main():
         elif res.num_users < least.num_users:
             least = res
 
+    #Print out the server with the least number of users
     if args.sentence:
         print "The server with the least number of users is {} which has {} users".format(least.server, least.num_users)
     else:
