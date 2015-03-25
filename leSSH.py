@@ -49,11 +49,11 @@ def worker(server, username, password):#, lock):
 
     print("Testing {}".format(server))  #Print the server that we are testing
     print "1"
-    s.sendline("hostname")              #Send the `hostname` command for test
+    s.sendline('hostname')              #Send the `hostname` command for test
     print "2"
     s.prompt()                          #Synchronize with the prompt
     print "3"
-    print s.before()                    #Print the results of the command
+    print s.before                    #Print the results of the command
     print "4"
     s.logout()                          #Logout of the server
     print "5"
