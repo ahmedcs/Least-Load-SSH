@@ -18,12 +18,6 @@ class result:
     num_users  = int()
     list_users = list()
  
-    def __init__(self, serv, num, ls_users):
-        server     = serv
-        num_users  = num
-        list_users = ls_users
-        
-
 #Worker for each process spawned
 def worker(server, username, password):#, lock):
     #Try each server 3 times (0, 1, 2)
@@ -67,11 +61,12 @@ def worker(server, username, password):#, lock):
     outputArray = filter(None, \
             s.before.split('\r\n'))
     outputArray = outputArray[1:]
-    print type(s.before)
-    print s.before                    #Print the results of the command
-    print outputArray
-    summary = result(server, len(outputArray) - 1, outputArray)
-    results.append(summary)
+    r = result()
+    r.server = server
+    r.num_users = len(outputArray) - 1
+    r.list_users = outputArray
+
+    results.append(r)
     s.logout()                          #Logout of the server
 
 
@@ -82,6 +77,7 @@ def main():
     parser.add_argument("filename", help="File containing a list of SSH servers.")
     #parser.add_argument("-sc", "--short-circuit", help="If a server has 0 users logged on, stop examination of all other servers and return this server as the successful server.", action='store_true')
     #parser.add_argument("-k", "--key-file", help="Specify a private key for login.")
+    parser.add_argument("--sentence", "-s", help="Print the final output in a sentence", action='store_true')
     args = parser.parse_args()
     
     global results
@@ -110,33 +106,22 @@ def main():
     for thread in threads:
         thread.join()
 
-    print "NOW PRINTING THE SUMMARY OF THE STUFF!!!!"
-    print results
+    #print "NOW PRINTING THE SUMMARY OF THE STUFF!!!!"
+    #print results
 
     first = True
-    for result in results:
+    least = result()
+    for res in results:
         if first == True:
             first = False
-            least = result
-        elif result[1] < least[1]:
-            least = []
-            least.append(result)
-        elif result[1] == least[1]:
-            least.extend(result)
+            least = res
+        elif res.num_users < least.num_users:
+            least = res
 
-    if len(least) == 1:
-        print "The server with the least number of users is:"
-        print "{}\t{}".format(least[0][0],least[0][1])
-    elif len(least) > 1:
-        print least
-        print "The servers with the least number of users are:"
-        for index in range(0, len(least)):
-            print "Index>> {}".format(index)
-            print least[index]
-    elif len(least) < 1:
-        print "Something has gone terribly wrong"
-    
-    return 0
+    if args.sentence:
+        print "The server with the least number of users is {} which has {} users".format(least.server, least.num_users)
+    else:
+        print "{}\t{}".format(least.server, least.num_users)
 
 if __name__ == "__main__":
     sys.exit(main())
