@@ -16,5 +16,8 @@ positional arguments:
       --sentence, -s  Print the final output in a sentence
 ```
 
+##Dependencies
+This script uses, `pxssh`, which is part of `pexpect`.  Please see [installation instructions](http://pexpect.readthedocs.org/en/latest/install.html).
+
 ##General Method
 Supply the script with a list of servers, either as an FQDN or an IP address, log into all of them, execute \`who -u\` to log the number of users on the server, return the server that has the least number of users logged in.
