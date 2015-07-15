@@ -94,11 +94,6 @@ def main():
     #Create my argument parser
     parser = argparse.ArgumentParser()
     parser.add_argument("filename", help="File containing a list of SSH servers.")
-    '''
-    Options to be added soon:
-    #parser.add_argument("-sc", "--short-circuit", help="If a server has 0 users logged on, stop examination of all other servers and return this server as the successful server.", action='store_true')
-    #parser.add_argument("-k", "--key-file", help="Specify a private key for login.")
-    '''
     parser.add_argument("--sentence", "-s", help="Print the final output in a sentence", action='store_true')
     args = parser.parse_args()
     
